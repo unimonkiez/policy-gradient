@@ -1,0 +1,15 @@
+{
+  "editor.formatOnSave": true,
+  "python.linting.enabled": false,
+  "python.linting.pylintEnabled": false,
+  "python.linting.mypyEnabled": false,
+  "python.linting.flake8Enabled": false,
+  "python.linting.mypyArgs": ["--strict"],
+  "python.formatting.provider": "black",
+  "files.insertFinalNewline": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python"
+  },
+  "python.pythonPath": "venv/bin/python"
+}
