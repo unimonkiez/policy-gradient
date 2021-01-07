@@ -16,12 +16,8 @@ class PolicyGradientAgent(object):
         self.lr = lr
 
     def action_probability(self, state):
-        """
-        Compute p(a|s) for discrete action using linear model on state
-        :param state: environment state
-        :return: vector of probabilities
-        """
-        # TODO
+        p_as = softmax(np.matmul(state, self.W) + self.b)
+        return p_as
 
     def get_action(self, state):
         """
