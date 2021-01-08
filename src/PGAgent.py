@@ -8,13 +8,9 @@ def softmax(x):
 
 
 def softmax_grad(x):
-    len_x = len(x)
-    jacobian_m = np.diag(x)
-    for i in range(len_x):
-        for j in range(len_x):
-            delta_i_eql_j = 1 if i == j else 0
-            jacobian_m[i][j] = x[i] * (delta_i_eql_j - x[i])
-    return jacobian_m
+    soft = softmax(x)
+    s = soft.reshape(-1, 1)
+    return np.diagflat(s) - np.dot(s, s.T)
 
 
 class PolicyGradientAgent(object):
@@ -44,13 +40,14 @@ class PolicyGradientAgent(object):
         return np.random.choice(self.num_actions, p=probs)
 
     def grad_log_prob(self, state, action):
-        inner_softmax_fn = self.get_inner_softmax_fn(state)
         p_as = self.action_probability(state)
-        p_as_grad = softmax_grad(inner_softmax_fn)
-        dW_p_as = -np.matmul(state, p_as_grad) / p_as
-        db_p_as = -np.matmul(np.ones_like(state), p_as_grad) / p_as
+        dirac = list(map(lambda i: i == action, range(self.num_actions)))
+        state_t = np.mat(state).transpose()
+        grad_softmax = np.mat(dirac - p_as)
+        dW = np.matmul(state_t, grad_softmax)
+        db = grad_softmax
 
-        return np.array([dW_p_as[action], db_p_as[action]])
+        return dW, db
 
     def update_weights(self, dW, db):
         """

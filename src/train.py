@@ -36,30 +36,46 @@ def run_episode(env, agent, reward_to_go=False, baseline=0.0):
     db_arr = []
     rewards = []
     terminal = False
+    counter = 0
     while not terminal:
+        counter += 1
         action = agent.get_action(state)
         state, reward, terminal, _ = env.step(action)
         rewards.append(reward)
 
         grad_log_W, grad_log_B = agent.grad_log_prob(state, action)
-        dW_arr.append(grad_log_W)
-        db_arr.append(grad_log_B)
+        coefficient = sum(rewards) if reward_to_go else 1
+        dW_arr.append(coefficient * grad_log_W)
+        db_arr.append(coefficient * grad_log_B)
 
-    dW = 1
-    db = 1
+    rewards_sum = sum(rewards)
+    dW = np.sum(dW_arr, 0) * (rewards_sum - baseline)
+    db = np.sum(db_arr, 0) * (rewards_sum - baseline)
 
-    return dW, db, sum(rewards)
+    return dW, db, rewards_sum, counter
 
 
 def train(env, agent, args):
     rewards = []
+    num_of_episodes_for_baseline = 10
     for i in range(args.N):
         dW = np.zeros_like(agent.W)
         db = np.zeros_like(agent.b)
         for j in range(args.b):
-            episode_dW, episode_db, r, counter = run_episode(env, agent)
-            dW += episode_dW / args.b
-            db += episode_db / args.b
+            baseline = 0
+            if args.baseline and len(rewards) >= num_of_episodes_for_baseline:
+                baseline = np.average(rewards[-num_of_episodes_for_baseline:])
+            episode_dW, episode_db, r, counter = run_episode(
+                env,
+                agent,
+                args.RTG,
+                baseline,
+            )
+            rewards.append(r)
+            dW -= episode_dW / args.b
+            db -= episode_db.flatten() / args.b
+
+        agent.update_weights(dW, db)
 
         if i % 100 == 25:
             temp = np.array(rewards[i - 25 : i])
