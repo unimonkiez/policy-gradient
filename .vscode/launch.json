@@ -10,7 +10,7 @@
       "request": "launch",
       "module": "src",
       "console": "internalConsole",
-      "args": ["--RTG", "--baseline", "--b", "1"]
+      "args": ["--b", "1", "--N", "10000"]
     }
   ]
 }
